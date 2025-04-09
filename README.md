@@ -188,3 +188,6 @@ cat /home/dnd/hw-k8s-storage-2/data/hello.txt
 
 ### Ответ:
 
+
+
+
