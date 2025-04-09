@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mt-bb-pv-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mt-bb
+  template:
+    metadata:
+      labels:
+        app: mt-bb
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          command: ["/bin/sh", "-c", "while true; do echo $(date) > /data/hello.txt; sleep 5; done"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+        - name: multitool
+          image: wbitt/network-multitool
+          command: ["/bin/sh", "-c", "while true; do if [ -f /data/hello.txt ]; then cat /data/hello.txt; fi; sleep 2; done"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: local-pvc
