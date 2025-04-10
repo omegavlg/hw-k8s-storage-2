@@ -123,7 +123,7 @@ sudo kubectl get deployment
 ```
 
 ```
-sudo kubectl get pod
+sudo kubectl get pods
 ```
 
 <img src = "img/01.png" width = 100%>
@@ -188,6 +188,104 @@ cat /home/dnd/hw-k8s-storage-2/data/hello.txt
 
 ### Ответ:
 
+1. Включаем **NFS-сервер** на **MicroK8S**:
 
+```
+microk8s enable hostpath-storage
+```
 
+<img src = "img/06.png" width = 100%>
+
+Проверяем что он появился:
+
+```
+sudo kubectl get storageclass
+```
+
+<img src = "img/07.png" width = 100%>
+
+2. Создаем манифест **Deployment** приложения:
+
+**deployment-nfs.yaml**
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: multitool-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: microk8s-hostpath
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multitool
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multitool
+  template:
+    metadata:
+      labels:
+        app: multitool
+    spec:
+      containers:
+        - name: multitool
+          image: wbitt/network-multitool
+          volumeMounts:
+            - name: multitool-storage
+              mountPath: /mnt/data
+      volumes:
+        - name: multitool-storage
+          persistentVolumeClaim:
+            claimName: multitool-pvc
+```
+
+Применяем манифест:
+
+```
+sudo kubectl apply -f deployment.yaml
+```
+
+<img src = "img/08.png" width = 100%>
+
+```
+sudo kubectl get pods
+```
+
+<img src = "img/09.png" width = 100%>
+
+3. Пробуем записать возможность записи и чтения файла изнутри пода:
+
+```
+sudo kubectl exec -it multitool-f86c7d557-kzp22 -- /bin/sh
+```
+
+```
+echo "hostpath works!" > /mnt/data/test.txt
+```
+
+```
+cat /mnt/data/test.txt
+```
+
+<img src = "img/10.png" width = 100%>
+
+Проверяем на хостовой машине хранилище и созданный файл:
+
+```
+ls /var/snap/microk8s/common/default-storage/
+```
+
+```
+cat /var/snap/microk8s/common/default-storage/default-multitool-pvc-pvc-45a2a4d4-7f28-42ed-bd7f-be3c4003566a/test.txt
+```
+
+<img src = "img/11.png" width = 100%>
 
