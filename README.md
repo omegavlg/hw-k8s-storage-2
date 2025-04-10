@@ -250,7 +250,7 @@ spec:
 Применяем манифест:
 
 ```
-sudo kubectl apply -f deployment.yaml
+sudo kubectl apply -f deployment-nfs.yaml
 ```
 
 <img src = "img/08.png" width = 100%>
